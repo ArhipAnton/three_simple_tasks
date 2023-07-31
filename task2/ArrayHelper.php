@@ -6,10 +6,11 @@ class ArrayHelper
 
     public static function buildUniqueArray(int $columnsCount, int $rowsCount, int $minItem, int $maxItem): array
     {
-        if (($maxItem - $minItem) < $columnsCount * $rowsCount) {
-            throw new LogicException(
-                'It is not possible to create an array of unique numbers with such parameters'
-            );
+        if ($columnsCount < 0 || $rowsCount < 0) {
+            throw new InvalidArgumentException('columns count and rows count must be greater than zero');
+        }
+        if (($maxItem - $minItem) < ($columnsCount * $rowsCount)) {
+            throw new LogicException('It is not possible to create an array of unique numbers with such parameters');
         }
 
         self::$usedItems = [];
@@ -28,7 +29,7 @@ class ArrayHelper
     private static function generateUnique(int $min, int $max): int
     {
         $rand = rand($min, $max);
-        if (!array_search($rand, self::$usedItems)) {
+        if (!in_array($rand, self::$usedItems)) {
             self::$usedItems[] = $rand;
             return $rand;
         }
