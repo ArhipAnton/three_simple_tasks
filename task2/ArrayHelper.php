@@ -2,41 +2,67 @@
 
 class ArrayHelper
 {
-    private static array $usedItems = [];
+    private static array $usedItems;
+    private const CRITERION = 1000;
 
-    public static function buildUniqueArray(int $columnsCount, int $rowsCount, int $minItem, int $maxItem): array
+    /**
+     * @throws InvalidArgumentException
+     */
+    public static function printArray(int $colCount, int $rowCount, int $min, int $max): void
     {
-        if ($columnsCount < 0 || $rowsCount < 0) {
-            throw new InvalidArgumentException('columns count and rows count must be greater than zero');
+        self::validate($colCount, $rowCount, $min, $max);
+        $array = self::generateArray($colCount, $rowCount, $min, $max);
+        self::print($array);
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    private static function validate(int $colCount, int $rowCount, int $min, int $max): void
+    {
+        if ($colCount <= 0 || $rowCount <= 0) {
+            throw new InvalidArgumentException('columns and rows count must be greater than zero');
         }
-        if (($maxItem - $minItem) < ($columnsCount * $rowsCount)) {
-            throw new LogicException('It is not possible to create an array of unique numbers with such parameters');
+        if (($max - $min) < ($colCount * $rowCount)) {
+            throw new InvalidArgumentException('The array value range must be greater than the array size');
+        }
+    }
+
+    public static function generateArray(int $colCount, int $rowCount, int $min, int $max): array
+    {
+        $size = $colCount * $rowCount;
+        $div = ($max - $min) / ($colCount * $rowCount);
+
+        if ($div < self::CRITERION) {
+            $array = self::generateAlg1($min, $max, $size);
+        } else {
+            $array = self::generateAlg2($min, $max, $size);
         }
 
-        self::$usedItems = [];
-        $rows = [];
+        return array_chunk($array, $colCount);
+    }
 
-        for ($i = 0; $i < $rowsCount; $i++) {
-            $row = [];
-            for ($j = 0; $j < $columnsCount; $j++) {
-                $row[] = self::generateUnique($minItem, $maxItem);
+    private static function generateAlg1(int $min, int $max, int $size): array
+    {
+        $array = range($min, $max);
+        shuffle($array);
+        return array_slice($array, 0, $size);
+    }
+
+    private static function generateAlg2(int $min, int $max, int $size): array
+    {
+        $array = [];
+        while (count($array) < $size) {
+            $randomNumber = rand($min, $max);
+
+            if (!in_array($randomNumber, $array)) {
+                $array[] = $randomNumber;
             }
-            $rows[] = $row;
         }
-        return $rows;
+        return $array;
     }
 
-    private static function generateUnique(int $min, int $max): int
-    {
-        $rand = rand($min, $max);
-        if (!in_array($rand, self::$usedItems)) {
-            self::$usedItems[] = $rand;
-            return $rand;
-        }
-        return self::generateUnique($min, $max);
-    }
-
-    public static function showArrayAndSum(array $array): void
+    private static function print(array $array): void
     {
         $columns = [];
         foreach ($array as $row) {
@@ -57,5 +83,4 @@ class ArrayHelper
     }
 }
 
-$array = ArrayHelper::buildUniqueArray(5, 7, 1, 1000);
-ArrayHelper::showArrayAndSum($array);
+ArrayHelper::printArray(5, 7, 1, 1000);
