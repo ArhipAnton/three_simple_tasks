@@ -3,7 +3,7 @@
 class ArrayHelper
 {
     private static array $usedItems;
-    private const CRITERION = 1000;
+    private const CRITERION = 100;
 
     /**
      * @throws InvalidArgumentException
